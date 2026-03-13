@@ -2,7 +2,7 @@ from vpython import *
 mode = input("Choose simulation mode (2D or 3D): ")
 # PARAMETERS
 g = vector(0,-9.81,0)     # gravity
-k = 0.1                   # drag coefficient
+k = float(input("Enter drag coefficient (try 0.0 - 0.5): "))                   # drag coefficient
 m = 1                     # mass
 dt = 0.01                 # timestep
 
@@ -24,12 +24,13 @@ else:
 ground = box(pos=vector(0,-0.5,0), size=vector(50,1,10), color=color.green)
 
 ball = sphere(pos=vector(0,0,0), radius=0.3, color=color.red, make_trail=True)
-
+info = label(pos=vector(0,10,0), text="", box=False)
 # SIMULATION LOOP
 while ball.pos.y >= 0:
     
     rate(100)
-
+    info.text = f"Position: {ball.pos}\nVelocity: {velocity}"
+    
     acceleration = g - (k/m)*velocity
 
     velocity = velocity + acceleration*dt
