@@ -1,4 +1,10 @@
 from vpython import *
+scene.width = 900
+scene.height = 500
+scene.background = color.black
+scene.center = vector(20,5,0)
+scene.range = 40
+scene.title = "Projectile Motion Simulation"
 mode = input("Choose simulation mode (2D or 3D): ")
 # PARAMETERS
 g = vector(0,-9.81,0)     # gravity
@@ -21,10 +27,22 @@ else:
     print("Invalid mode, defaulting to 2D")
     velocity = vector(initial_speed*cos(angle), initial_speed*sin(angle), 0)
 # CREATE OBJECTS
-ground = box(pos=vector(0,-0.5,0), size=vector(50,1,10), color=color.green)
+ground = box(pos=vector(25,-0.5,0), size=vector(100,1,20), color=vector(0.2,0.8,0.2))
 
-ball = sphere(pos=vector(0,0,0), radius=0.3, color=color.red, make_trail=True)
-info = label(pos=vector(0,10,0), text="", box=False)
+ball = sphere(
+    pos=vector(0,0,0),
+    radius=0.5,
+    color=color.red,
+    make_trail=True,
+    trail_radius=0.1
+)
+info = label(
+    pos=vector(10,15,0),
+    text="",
+    box=False,
+    height=16,
+    color=color.white
+)
 # SIMULATION LOOP
 while ball.pos.y >= 0:
     
