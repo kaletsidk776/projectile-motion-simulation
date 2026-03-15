@@ -43,13 +43,62 @@ lbl_z = label(pos=vector(0,0,13),  text="Z", box=False, height=12, color=color.c
 
 cannon = cylinder(pos=vector(0,0,0), axis=vector(3,0,0), radius=0.5, color=color.orange)
 ball   = sphere(pos=vector(0,0,0), radius=0.6, color=color.red, make_trail=True)
-data_label = label(pos=vector(0,20,0), text="", box=False, height=13, color=color.cyan)
+
+# Live data label — pixel-pinned, draggable (origin = canvas centre)
+lbl_px, lbl_py = 330, 140          # current pixel position
+_drag_active   = False             # is the user dragging the panel?
+_drag_origin   = vector(0, 0, 0)   # mouse pixel pos when drag started
+_drag_lbl0     = vector(0, 0, 0)   # label pixel pos when drag started
+
+data_label = label(pixel_pos=True, pos=vector(lbl_px, lbl_py, 0),
+                   text="", box=True, border=6, height=12,
+                   color=color.cyan, background=color.black,
+                   opacity=0.75, align="left")
+
+def _world_to_pixel(world_pos):
+    """Convert a 3-D mouse position to canvas pixel coords (origin = centre)."""
+    scale = scene.width / (2.0 * scene.range)
+    return vector((world_pos.x - scene.center.x) * scale,
+                  (world_pos.y - scene.center.y) * scale, 0)
+
+def _on_mousedown(evt):
+    global _drag_active, _drag_origin, _drag_lbl0, lbl_px, lbl_py
+    mp = _world_to_pixel(evt.pos)
+    # Hit-test: click must be within ~90 x 35 px of the label centre
+    if abs(mp.x - lbl_px) < 90 and abs(mp.y - lbl_py) < 35:
+        _drag_active = True
+        _drag_origin = mp
+        _drag_lbl0   = vector(lbl_px, lbl_py, 0)
+
+def _on_mousemove(evt):
+    global lbl_px, lbl_py
+    if _drag_active:
+        mp     = _world_to_pixel(evt.pos)
+        delta  = mp - _drag_origin
+        lbl_px = _drag_lbl0.x + delta.x
+        lbl_py = _drag_lbl0.y + delta.y
+        data_label.pos = vector(lbl_px, lbl_py, 0)
+
+def _on_mouseup(evt):
+    global _drag_active
+    _drag_active = False
+
+scene.bind('mousedown', _on_mousedown)
+scene.bind('mousemove', _on_mousemove)
+scene.bind('mouseup',   _on_mouseup)
 
 # ── Extra visual objects ──────────────────────────────────────────────
 shadow = sphere(pos=vector(0,0.08,0), radius=0.55, color=color.black, opacity=0.35)
+
 vel_arrow = arrow(pos=vector(0,0,0), axis=vector(0,0.01,0),
                   shaftwidth=0.3, headwidth=0.6, headlength=0.6,
                   color=color.yellow, opacity=0)
+
+# Acceleration arrow (magenta) — shown during flight
+accel_arrow = arrow(pos=vector(0,0,0), axis=vector(0,-0.01,0),
+                    shaftwidth=0.25, headwidth=0.5, headlength=0.5,
+                    color=color.magenta, opacity=0)
+
 peak_marker = sphere(pos=vector(0,0,0), radius=0.55,
                      color=color.yellow, opacity=0, emissive=True)
 peak_label  = label(pos=vector(0,0,0), text="", box=True,
@@ -78,14 +127,16 @@ def do_launch(b):
     ball.clear_trail()
     height_curve.delete()
     velocity_curve.delete()
+    accel_curve.delete()
     launched = True
 
     # Reset peak tracking
     peak_highest = 0.0
     peak_vec     = vector(0, 0, 0)
-    peak_marker.opacity = 0
-    peak_label.opacity  = 0
-    vel_arrow.opacity   = 1
+    peak_marker.opacity  = 0
+    peak_label.opacity   = 0
+    vel_arrow.opacity    = 1
+    accel_arrow.opacity  = 1
 
     # Draw ideal (no-drag) ghost trail
     ideal_trail.visible = False
@@ -234,6 +285,32 @@ scene.append_to_caption("</b> v=<b>")
 q_vd = wtext(text="--")
 scene.append_to_caption("</b>m/s")
 
+# ── Acceleration row ────────────────────────────────────────────────
+scene.append_to_caption("""
+<br><span style="color:#c084fc;font-weight:bold;">&#9632; Acceleration at t</span>&nbsp;&nbsp;
+<span style="color:#38bdf8">Ideal:</span>
+&nbsp;ax=<b>""")
+q_axi = wtext(text="--")
+scene.append_to_caption("</b> ay=<b>")
+q_ayi = wtext(text="--")
+scene.append_to_caption("</b> az=<b>")
+q_azi = wtext(text="--")
+scene.append_to_caption("""</b> m/s&#178;&nbsp;
+<span style="color:#c084fc">|a|=<b>""")
+q_ai = wtext(text="--")
+scene.append_to_caption("""</b> m/s&#178;</span>&nbsp;&nbsp;&nbsp;
+<span style="color:#facc15">Drag:</span>
+&nbsp;ax=<b>""")
+q_axd = wtext(text="--")
+scene.append_to_caption("</b> ay=<b>")
+q_ayd = wtext(text="--")
+scene.append_to_caption("</b> az=<b>")
+q_azd = wtext(text="--")
+scene.append_to_caption("""</b> m/s&#178;&nbsp;
+<span style="color:#c084fc">|a|=<b>""")
+q_ad = wtext(text="--")
+scene.append_to_caption("</b> m/s&#178;</span>")
+
 scene.append_to_caption("""
 <hr style="margin:5px 0;border-color:#334155;">
 """)
@@ -248,6 +325,10 @@ height_curve = gcurve(color=color.cyan)
 graph2 = graph(title="Speed vs Time", xtitle="t (s)", ytitle="v (m/s)",
                align="left", width=460, height=160)
 velocity_curve = gcurve(color=color.yellow)
+
+graph3 = graph(title="Acceleration Magnitude vs Time", xtitle="t (s)", ytitle="|a| (m/s²)",
+               align="left", width=460, height=160)
+accel_curve = gcurve(color=color.magenta)
 
 # ════════════════════════════════════════════════════════════════════
 #  Physics helpers
@@ -307,7 +388,12 @@ def at_time_ideal_3d(spd, elev, azim, qt):
     vi  = sqrt(v0x*v0x + vyi*vyi + v0z*v0z)
     if yi < 0:
         yi = 0
-    return round(xi,2), round(yi,2), round(zi,2), round(vi,2)
+    # Ideal acceleration: only gravity acts (no drag)
+    axi = 0.0
+    ayi = -G
+    azi = 0.0
+    ai  = G
+    return round(xi,2), round(yi,2), round(zi,2), round(vi,2), round(axi,2), round(ayi,2), round(azi,2), round(ai,2)
 
 def at_time_drag_3d(spd, elev, azim, k, qt):
     e  = elev * pi / 180
@@ -326,10 +412,15 @@ def at_time_drag_3d(spd, elev, azim, k, qt):
         ts = ts + DT
         if yd < 0:
             break
-    vd = sqrt(vx*vx + vy*vy + vz*vz)
+    vd  = sqrt(vx*vx + vy*vy + vz*vz)
+    # Drag acceleration components at this moment
+    axd = -k * vx
+    ayd = -G - k * vy
+    azd = -k * vz
+    ad  = sqrt(axd*axd + ayd*ayd + azd*azd)
     if yd < 0:
         yd = 0
-    return round(xd,2), round(yd,2), round(zd,2), round(vd,2)
+    return round(xd,2), round(yd,2), round(zd,2), round(vd,2), round(axd,2), round(ayd,2), round(azd,2), round(ad,2)
 
 def update_calc(evt):
     spd  = speed_slider.value
@@ -359,17 +450,25 @@ def update_calc(evt):
     r_rng_d.text  = r2(drng)
     r_peak_d.text = r2(dpeak)
 
-    xi, yi, zi, vi = at_time_ideal_3d(spd, elev, azim, qt)
-    q_xi.text = str(xi)
-    q_yi.text = str(yi)
-    q_zi.text = str(zi)
-    q_vi.text = str(vi)
+    xi, yi, zi, vi, axi, ayi, azi, ai = at_time_ideal_3d(spd, elev, azim, qt)
+    q_xi.text  = str(xi)
+    q_yi.text  = str(yi)
+    q_zi.text  = str(zi)
+    q_vi.text  = str(vi)
+    q_axi.text = str(axi)
+    q_ayi.text = str(ayi)
+    q_azi.text = str(azi)
+    q_ai.text  = str(ai)
 
-    xd, yd, zd, vd = at_time_drag_3d(spd, elev, azim, k, qt)
-    q_xd.text = str(xd)
-    q_yd.text = str(yd)
-    q_zd.text = str(zd)
-    q_vd.text = str(vd)
+    xd, yd, zd, vd, axd, ayd, azd, ad = at_time_drag_3d(spd, elev, azim, k, qt)
+    q_xd.text  = str(xd)
+    q_yd.text  = str(yd)
+    q_zd.text  = str(zd)
+    q_vd.text  = str(vd)
+    q_axd.text = str(axd)
+    q_ayd.text = str(ayd)
+    q_azd.text = str(azd)
+    q_ad.text  = str(ad)
 
     e = elev * pi / 180
     a = azim * pi / 180
@@ -390,7 +489,10 @@ while True:
             ax_accel = -k * velocity.x
             ay_accel = -G - k * velocity.y
             az_accel = -k * velocity.z
-            velocity = velocity + vector(ax_accel, ay_accel, az_accel) * DT
+            accel_vec = vector(ax_accel, ay_accel, az_accel)
+            accel_mag = mag(accel_vec)
+
+            velocity = velocity + accel_vec * DT
             ball.pos = ball.pos + velocity * DT
             t = t + DT
 
@@ -407,35 +509,44 @@ while True:
 
             height_curve.plot(t, ball.pos.y)
             velocity_curve.plot(t, mag(velocity))
+            accel_curve.plot(t, accel_mag)
 
             # Shadow tracks ball on ground plane
             shadow.pos = vector(ball.pos.x, 0.08, ball.pos.z)
 
-            # Velocity vector arrow follows ball
+            # Velocity arrow (yellow) follows ball
             vel_arrow.pos  = ball.pos
             vel_arrow.axis = velocity * 0.6
+
+            # Acceleration arrow (magenta) follows ball
+            accel_arrow.pos  = ball.pos
+            accel_arrow.axis = accel_vec * 0.6
 
             # Track peak height
             if ball.pos.y > peak_highest:
                 peak_highest = ball.pos.y
                 peak_vec     = vector(ball.pos.x, ball.pos.y, ball.pos.z)
 
-            data_label.pos = ball.pos + vector(0, 6, 0)
             data_label.text = (
-                "t=" + str(round(t,2)) + "s"
-                + "  x=" + str(round(ball.pos.x,1))
-                + "  y=" + str(round(ball.pos.y,1))
-                + "  z=" + str(round(ball.pos.z,1))
-                + "\nv=" + str(round(mag(velocity),1)) + " m/s"
+                "t=" + str(round(t, 2)) + "s"
+                + "  x=" + str(round(ball.pos.x, 1))
+                + "  y=" + str(round(ball.pos.y, 1))
+                + "  z=" + str(round(ball.pos.z, 1))
+                + "\nv=" + str(round(mag(velocity), 1)) + " m/s"
+                + "  |a|=" + str(round(accel_mag, 2)) + " m/s\u00b2"
+                + "\nax=" + str(round(ax_accel, 2))
+                + "  ay=" + str(round(ay_accel, 2))
+                + "  az=" + str(round(az_accel, 2)) + " m/s\u00b2"
             )
 
             if ball.pos.y < 0:
                 launched = False
                 # Place peak marker at apex
-                peak_marker.pos    = peak_vec
+                peak_marker.pos     = peak_vec
                 peak_marker.opacity = 0.9
-                peak_label.pos     = peak_vec + vector(0, 4, 0)
-                peak_label.text    = "Peak: " + str(round(peak_highest, 1)) + " m"
-                peak_label.opacity = 1
-                vel_arrow.opacity  = 0
+                peak_label.pos      = peak_vec + vector(0, 4, 0)
+                peak_label.text     = "Peak: " + str(round(peak_highest, 1)) + " m"
+                peak_label.opacity  = 1
+                vel_arrow.opacity   = 0
+                accel_arrow.opacity = 0
                 break
