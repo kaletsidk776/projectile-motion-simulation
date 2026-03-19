@@ -36,7 +36,7 @@ m dv/dt = mg - k v
 
 ### Numerical Integration
 
-The simulation uses Euler integration to update the motion step-by-step.
+This simulation uses Euler integration to update the motion step-by-step.
 
 Velocity update:
 
