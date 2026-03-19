@@ -1,4 +1,4 @@
-### Grade 11 Physics: 3D Kinematics Simulation
+### Grade 11 Physics: 3D Kinematics Simulation project 
 The projectile motion is modeled using Newton's Second Law.
 
 The projectile experiences two forces:
