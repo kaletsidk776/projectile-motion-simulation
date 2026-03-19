@@ -8,7 +8,7 @@ The projectile experiences two forces:
 
 ### Gravitational force
 
-Gravity acts downward only:
+Gravitational force acts downward only:
 
 F_g = mg
 
