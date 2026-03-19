@@ -1,5 +1,5 @@
 ### Grade 11 Physics: 3D Kinematics Simulation project 
-The projectile motion is modeled using Newton's Second Law.
+The projectile motion is modeled using Newton's Second Law of motion .
 
 The projectile experiences two forces:
 
@@ -24,7 +24,7 @@ where
 k = drag coefficient
 v = velocity vector
 
-### The total Force
+### The total force
 
 The total force acting on the projectile is:
 
