@@ -35,27 +35,24 @@ target = box(pos=vector(250,5,0), size=vector(6,10,6), color=color.red)
 score = 0
 score_label = label(pos=vector(0,20,0), text="Score: 0", box=False)
 
-# 3. Grid lines (Dark green so they aren't ugly black lines)
+# 3. Grid lines
 for gx in range(-400, 1200, 50):
     curve(pos=[vector(gx, 0.02, -500), vector(gx, 0.02, 500)], color=vector(0.15, 0.35, 0.15), radius=0.08)
 for gz in range(-400, 500, 50):
     curve(pos=[vector(-400, 0.02, gz), vector(1200, 0.02, gz)], color=vector(0.15, 0.35, 0.15), radius=0.08)
 
-# 4. DISTANCE MARKERS (X and Z axis)
+# 4. DISTANCE MARKERS
 for d in [100, 200, 300, 400, 500, 600]:
-    # X-axis markers (Forward)
     box(pos=vector(d, 2.5, -20), size=vector(0.3, 5, 0.3), color=color.white)
     box(pos=vector(d, 4.8, -20), size=vector(2, 1, 0.1), color=color.red)
     label(pos=vector(d, 6.5, -20), text=str(d)+"m", box=False, height=12, color=color.black)
     
-    # Z-axis markers (Right side) - ADDED FOR CONSISTENCY
     box(pos=vector(-20, 2.5, d), size=vector(0.3, 5, 0.3), color=color.white)
     box(pos=vector(-20, 4.8, d), size=vector(2, 1, 0.1), color=color.red)
     label(pos=vector(-20, 6.5, d), text=str(d)+"m", box=False, height=12, color=color.black)
 
 # 5. REALISTIC CLOUD GENERATOR
 def create_cloud(x, y, z):
-    # Creates a cluster of spheres to look like a fluffy cloud
     cloud_group = []
     num_puffs = 8
     for i in range(num_puffs):
@@ -63,24 +60,19 @@ def create_cloud(x, y, z):
         puff = sphere(pos=vector(x, y, z) + offset, 
                       radius=random()*15 + 10, 
                       color=color.white, 
-                      opacity=0.3) # Layered transparency creates volume
+                      opacity=0.3)
         cloud_group.append(puff)
     return cloud_group
 
-# Generate a few clusters
 create_cloud(300, 150, -400)
 create_cloud(600, 180, -350)
 create_cloud(-200, 140, 200)
 
-
-# 6. DELETED MOUNTAINS/WALLS (As requested)
-
 # 7. SUN
 sun = sphere(pos=vector(800, 400, -600), radius=60, color=color.yellow, emissive=True)
-
 distant_light(direction=vector(-1,-1,-1), color=color.white)
 
-# 8. Cannon Base (RAISED UP to y=0.5 so it sits ON the ground, not in it)
+# 8. Cannon Base
 cannon_base = box(pos=vector(0, 0.25, 0), size=vector(2, 0.5, 2), color=vector(0.4, 0.26, 0.13))
 cannon = cylinder(pos=vector(0, 0.5, 0), axis=vector(3,0,0), radius=0.5, color=color.orange)
 ball = sphere(
@@ -92,7 +84,6 @@ ball = sphere(
     trail_color=color.orange,
     trail_radius=0.18
 )
-# Smoke particles for launch effect
 smoke_particles = []
 ball.retain = 400
 flash = local_light(pos=cannon.pos, color=color.orange)
@@ -105,16 +96,13 @@ lbl_x = label(pos=vector(13,0,0), text="X", box=False, height=12, color=color.re
 lbl_y = label(pos=vector(0,13,0), text="Y", box=False, height=12, color=color.green, opacity=0)
 lbl_z = label(pos=vector(0,0,13), text="Z", box=False, height=12, color=color.cyan, opacity=0)
 
-# Live data label (FIXED: box=False removes the ugly black background)
 lbl_px, lbl_py = 330, 140
 _drag_active = False
-_drag_origin = vector(0, 0, 0)
-_drag_lbl0 = vector(0, 0, 0)
-
 data_label = label(pixel_pos=True, pos=vector(lbl_px, lbl_py, 0),
                    text="", box=False, border=4, height=12,
                    color=color.black, opacity=0, align="left")
 
+# Interaction logic
 def _world_to_pixel(world_pos):
     scale = scene.width / (2.0 * scene.range)
     return vector((world_pos.x - scene.center.x) * scale,
@@ -145,42 +133,17 @@ scene.bind('mousedown', _on_mousedown)
 scene.bind('mousemove', _on_mousemove)
 scene.bind('mouseup', _on_mouseup)
 
-# ── Extra visual objects ──────────────────────────────────────────────
-shadow = cylinder(
-    pos=vector(0,0.01,0),
-    axis=vector(0,0.001,0),
-    radius=0.6,
-    color=color.black,
-    opacity=0.25
-)
-
-vel_arrow = arrow(pos=vector(0,0,0), axis=vector(0,0.01,0),
-                  shaftwidth=0.3, headwidth=0.6, headlength=0.6,
-                  color=color.yellow, opacity=0)
-
-accel_arrow = arrow(pos=vector(0,0,0), axis=vector(0,-0.01,0),
-                    shaftwidth=0.25, headwidth=0.5, headlength=0.5,
-                    color=color.magenta, opacity=0)
-
-peak_marker = sphere(
-    radius=0.6,
-    color=color.yellow,
-    emissive=True,
-    opacity=0
-)
-peak_label = label(pos=vector(0,0,0), text="", box=True,
-                    height=12, color=color.yellow, opacity=0,
-                    background=color.black, border=4)
+# Extra visual objects
+shadow = cylinder(pos=vector(0,0.01,0), axis=vector(0,0.001,0), radius=0.6, color=color.black, opacity=0.25)
+vel_arrow = arrow(pos=vector(0,0,0), axis=vector(0,0.01,0), shaftwidth=0.3, headwidth=0.6, headlength=0.6, color=color.yellow, opacity=0)
+accel_arrow = arrow(pos=vector(0,0,0), axis=vector(0,-0.01,0), shaftwidth=0.25, headwidth=0.5, headlength=0.5, color=color.magenta, opacity=0)
+peak_marker = sphere(radius=0.6, color=color.yellow, emissive=True, opacity=0)
+peak_label = label(pos=vector(0,0,0), text="", box=True, height=12, color=color.yellow, opacity=0, background=color.black, border=4)
 ideal_trail = curve(color=color.cyan, opacity=0, radius=0.15)
-
 peak_highest = 0.0
 peak_vec = vector(0, 0, 0)
 
-# ════════════════════════════════════════════════════════════════════
-# ROW 1 — Buttons
-# ════════════════════════════════════════════════════════════════════
-scene.append_to_caption("\n")
-
+# ── Button Actions ──────────────────────────────────────────────────
 def do_launch(b):
     global velocity, launched, t, ideal_trail, peak_highest, peak_vec, _launch_flash
     _launch_flash = 130
@@ -196,27 +159,21 @@ def do_launch(b):
                       spd * sin(elev),
                       spd * cos(elev) * sin(azim))
                       
-    # FIX: Start the ball at the cannon height (0.5) so it doesn't trigger the ground sensor immediately
     ball.pos = vector(0, 0.5, 0) 
     ball.clear_trail()
-    
-    # Clear old graphs
     height_curve.delete()
     velocity_curve.delete()
     accel_curve.delete()
     
     launched = True
     smoke_particles.clear()
-
-    # Launch smoke effect
     peak_highest = 0.0
     peak_vec = vector(0, 0, 0)
     peak_marker.opacity = 0
-    peak_label.visible = False # Hide old label
+    peak_label.visible = False
     vel_arrow.opacity = 1
     accel_arrow.opacity = 1
 
-    # Ideal Trajectory (Cyan line)
     ideal_trail.visible = False
     ideal_trail = curve(color=color.cyan, opacity=0.3, radius=0.15)
     gv0x, gv0y, gv0z = velocity.x, velocity.y, velocity.z
@@ -235,11 +192,9 @@ def do_pause(b):
     if paused:
         b.text = "▶ Resume"
         b.background = vector(0.65, 0.30, 0.02)
-        b.color = color.white
     else:
         b.text = "⏸ Pause"
         b.background = vector(0.85, 0.85, 0.85)
-        b.color = color.black
 
 def do_toggle_dim(b):
     global mode3D
@@ -248,16 +203,12 @@ def do_toggle_dim(b):
         scene.forward = vector(-1, -0.4, -0.8)
         scene.userspin = True
         b.text = "● 2D View"
-        b.background = vector(0.07, 0.45, 0.18)
-        b.color = color.white
         ax_x.opacity = 1; ax_y.opacity = 1; ax_z.opacity = 1
         lbl_x.opacity = 1; lbl_y.opacity = 1; lbl_z.opacity = 1
     else:
         scene.forward = vector(0, 0, -1)
         scene.userspin = False
         b.text = "3D View"
-        b.background = vector(0.85, 0.85, 0.85)
-        b.color = color.black
         ax_x.opacity = 0; ax_y.opacity = 0; ax_z.opacity = 0
         lbl_x.opacity = 0; lbl_y.opacity = 0; lbl_z.opacity = 0
 
@@ -276,357 +227,108 @@ def do_fast(b):
     speed_mult = 9
     _speed_select(btn_fast)
 
-_ACTIVE_BG = vector(0.07, 0.45, 0.18)
-_RESET_BG = vector(0.85, 0.85, 0.85)
-
 def _speed_select(active):
     for btn, lbl in ((btn_slow, "0.3x"), (btn_normal, "1x"), (btn_fast, "3x")):
         if btn is active:
-            btn.background = _ACTIVE_BG
+            btn.background = vector(0.07, 0.45, 0.18)
             btn.color = color.white
             btn.text = "● " + lbl
         else:
-            btn.background = _RESET_BG
+            btn.background = vector(0.85, 0.85, 0.85)
             btn.color = color.black
             btn.text = lbl
 
+# ── UI Row 1 ────────────────────────────────────────────────────────
+scene.append_to_caption("\n")
 btn_launch = button(text="Launch 🚀", bind=do_launch)
 btn_pause = button(text="⏸ Pause", bind=do_pause)
 btn_dim = button(text="3D View", bind=do_toggle_dim)
 scene.append_to_caption("&nbsp;&nbsp;<b>Speed:</b>&nbsp;")
 btn_slow = button(text="0.3x", bind=do_slow)
-btn_normal = button(text="● 1x", bind=do_normal)
+btn_normal = button(text="● 1x", bind=do_normal, background=vector(0.07, 0.45, 0.18), color=color.white)
 btn_fast = button(text="3x", bind=do_fast)
 
-btn_normal.background = _ACTIVE_BG
-btn_normal.color = color.white
-
-# ════════════════════════════════════════════════════════════════════
-# ROW 2 — Sliders
-# ════════════════════════════════════════════════════════════════════
-scene.append_to_caption("\n<b>v&#8320;:</b>&nbsp;")
-speed_slider = slider(min=5, max=80, value=20, step=1, length=140, bind=update_calc)
-scene.append_to_caption("&nbsp;")
-speed_wt = wtext(text="20 m/s")
-
-scene.append_to_caption("&nbsp;&nbsp;<b>&theta; (elev):</b>&nbsp;")
-angle_slider = slider(min=1, max=89, value=45, step=1, length=130, bind=update_calc)
-scene.append_to_caption("&nbsp;")
-angle_wt = wtext(text="45 deg")
-
-scene.append_to_caption("&nbsp;&nbsp;<b>&phi; (azim):</b>&nbsp;")
-azim_slider = slider(min=0, max=90, value=0, step=1, length=120, bind=update_calc)
-scene.append_to_caption("&nbsp;")
-azim_wt = wtext(text="0 deg")
-
-scene.append_to_caption("&nbsp;&nbsp;<b>k:</b>&nbsp;")
-drag_slider = slider(min=0, max=0.5, value=0.1, step=0.01, length=110, bind=update_calc)
-scene.append_to_caption("&nbsp;")
-drag_wt = wtext(text="0.10")
-
-# ════════════════════════════════════════════════════════════════════
-# CALCULATOR RESULTS
-# ════════════════════════════════════════════════════════════════════
-scene.append_to_caption("""
-<hr style="margin:5px 0;border-color:#334155;">
-<span style="color:#38bdf8;font-weight:bold;">&#9632; Ideal (XY-plane)</span>&nbsp;
-<span style="color:#555">ToF=</span>""")
-r_tof_i = wtext(text="--")
-scene.append_to_caption("""s&nbsp;
-<span style="color:#555">H=</span>""")
-r_maxh_i = wtext(text="--")
-scene.append_to_caption("""m&nbsp;
-<span style="color:#555">R&#8339;=</span>""")
-r_rng_i = wtext(text="--")
-scene.append_to_caption("""m&nbsp;
-<span style="color:#555">tPeak=</span>""")
-r_peak_i = wtext(text="--")
-scene.append_to_caption("""s&nbsp;
-<span style="color:#555">v&#8320;x=</span>""")
-r_v0x = wtext(text="--")
-scene.append_to_caption("""m/s&nbsp;
-<span style="color:#555">v&#8320;y=</span>""")
-r_v0y = wtext(text="--")
-scene.append_to_caption("""m/s&nbsp;
-<span style="color:#555">v&#8320;z=</span>""")
-r_v0z = wtext(text="--")
-scene.append_to_caption("m/s")
-
-scene.append_to_caption("""
-<br><span style="color:#facc15;font-weight:bold;">&#9632; Drag</span>&nbsp;
-<span style="color:#555">ToF=</span>""")
-r_tof_d = wtext(text="--")
-scene.append_to_caption("""s&nbsp;
-<span style="color:#555">H=</span>""")
-r_maxh_d = wtext(text="--")
-scene.append_to_caption("""m&nbsp;
-<span style="color:#555">R&#8339;=</span>""")
-r_rng_d = wtext(text="--")
-scene.append_to_caption("""m&nbsp;
-<span style="color:#555">tPeak=</span>""")
-r_peak_d = wtext(text="--")
-scene.append_to_caption("s")
-
-scene.append_to_caption("""
-<br><span style="color:#a78bfa;font-weight:bold;">&#9632; At t=</span>&nbsp;""")
-t_slider = slider(min=0, max=15, value=1, step=0.1, length=110, bind=update_calc)
-scene.append_to_caption("&nbsp;")
-t_wt = wtext(text="1.0 s")
-scene.append_to_caption("""&nbsp;&nbsp;
-<span style="color:#38bdf8">Ideal:</span> x=<b>""")
-q_xi = wtext(text="--")
-scene.append_to_caption("</b> y=<b>")
-q_yi = wtext(text="--")
-scene.append_to_caption("</b> z=<b>")
-q_zi = wtext(text="--")
-scene.append_to_caption("</b> v=<b>")
-q_vi = wtext(text="--")
-scene.append_to_caption("""</b>m/s&nbsp;&nbsp;
-<span style="color:#facc15">Drag:</span> x=<b>""")
-q_xd = wtext(text="--")
-scene.append_to_caption("</b> y=<b>")
-q_yd = wtext(text="--")
-scene.append_to_caption("</b> z=<b>")
-q_zd = wtext(text="--")
-scene.append_to_caption("</b> v=<b>")
-q_vd = wtext(text="--")
-scene.append_to_caption("</b>m/s")
-
-scene.append_to_caption("""
-<br><span style="color:#c084fc;font-weight:bold;">&#9632; Acceleration at t</span>&nbsp;&nbsp;
-<span style="color:#38bdf8">Ideal:</span>
-&nbsp;ax=<b>""")
-q_axi = wtext(text="--")
-scene.append_to_caption("</b> ay=<b>")
-q_ayi = wtext(text="--")
-scene.append_to_caption("</b> az=<b>")
-q_azi = wtext(text="--")
-scene.append_to_caption("""</b> m/s&#178;&nbsp;
-<span style="color:#c084fc">|a|=<b>""")
-q_ai = wtext(text="--")
-scene.append_to_caption("""</b> m/s&#178;</span>&nbsp;&nbsp;&nbsp;
-<span style="color:#facc15">Drag:</span>
-&nbsp;ax=<b>""")
-q_axd = wtext(text="--")
-scene.append_to_caption("</b> ay=<b>")
-q_ayd = wtext(text="--")
-scene.append_to_caption("</b> az=<b>")
-q_azd = wtext(text="--")
-scene.append_to_caption("""</b> m/s&#178;&nbsp;
-<span style="color:#c084fc">|a|=<b>""")
-q_ad = wtext(text="--")
-scene.append_to_caption("</b> m/s&#178;</span>")
-
-scene.append_to_caption("""
-<hr style="margin:5px 0;border-color:#334155;">
-""")
-
-# ════════════════════════════════════════════════════════════════════
-# GRAPHS
-# ════════════════════════════════════════════════════════════════════
-graph1 = graph(title="Height vs Time", xtitle="t (s)", ytitle="y (m)",
-               align="left", width=460, height=160)
-height_curve = gcurve(color=color.cyan)
-
-graph2 = graph(title="Speed vs Time", xtitle="t (s)", ytitle="v (m/s)",
-               align="left", width=460, height=160)
-velocity_curve = gcurve(color=color.yellow)
-
-graph3 = graph(title="Acceleration Magnitude vs Time", xtitle="t (s)", ytitle="|a| (m/s²)",
-               align="left", width=460, height=160)
-accel_curve = gcurve(color=color.magenta)
-
-# ════════════════════════════════════════════════════════════════════
-# Physics helpers
-# ════════════════════════════════════════════════════════════════════
-
-def r2(x):
-    return str(round(x, 2))
-
-def r1(x):
-    return str(round(x, 1))
-
-def calc_ideal(spd, elev, azim):
-    e = elev * pi / 180
-    a = azim * pi / 180
-    v0x = spd * cos(e) * cos(a)
-    v0y = spd * sin(e)
-    v0z = spd * cos(e) * sin(a)
-    tof = 2 * v0y / G
-    maxh = v0y * v0y / (2 * G)
-    rng = sqrt(v0x*v0x + v0z*v0z) * tof
-    return tof, maxh, rng, tof / 2, v0x, v0y, v0z
-
-def sim_drag_3d(spd, elev, azim, k):
-    e = elev * pi / 180
-    a = azim * pi / 180
-    vx = spd * cos(e) * cos(a)
-    vy = spd * sin(e)
-    vz = spd * cos(e) * sin(a)
-    x, y, z, ts = 0.0, 0.0, 0.0, 0.0
-    maxh, peak_t = 0.0, 0.0
-    while True:
-        vx = vx + (-k * vx) * DT
-        vy = vy + (-G - k * vy) * DT
-        vz = vz + (-k * vz) * DT
-        x = x + vx * DT
-        y = y + vy * DT
-        z = z + vz * DT
-        ts = ts + DT
-        if y > maxh:
-            maxh = y
-            peak_t = ts
-        if y < 0 or ts > 400:
-            break
-    rng = sqrt(x*x + z*z)
-    return ts, maxh, rng, peak_t
-
-def at_time_ideal_3d(spd, elev, azim, qt):
-    e = elev * pi / 180
-    a = azim * pi / 180
-    v0x = spd * cos(e) * cos(a)
-    v0y = spd * sin(e)
-    v0z = spd * cos(e) * sin(a)
-    xi = v0x * qt
-    yi = v0y * qt - 0.5 * G * qt * qt
-    zi = v0z * qt
-    vyi = v0y - G * qt
-    vi = sqrt(v0x*v0x + vyi*vyi + v0z*v0z)
-    if yi < 0:
-        yi = 0
-    axi = 0.0
-    ayi = -G
-    azi = 0.0
-    ai = G
-    return round(xi,2), round(yi,2), round(zi,2), round(vi,2), round(axi,2), round(ayi,2), round(azi,2), round(ai,2)
-
-def at_time_drag_3d(spd, elev, azim, k, qt):
-    e = elev * pi / 180
-    a = azim * pi / 180
-    vx = spd * cos(e) * cos(a)
-    vy = spd * sin(e)
-    vz = spd * cos(e) * sin(a)
-    xd, yd, zd, ts = 0.0, 0.0, 0.0, 0.0
-    while ts < qt:
-        vx = vx + (-k * vx) * DT
-        vy = vy + (-G - k * vy) * DT
-        vz = vz + (-k * vz) * DT
-        xd = xd + vx * DT
-        yd = yd + vy * DT
-        zd = zd + vz * DT
-        ts = ts + DT
-        if yd < 0:
-            break
-    vd = sqrt(vx*vx + vy*vy + vz*vz)
-    axd = -k * vx
-    ayd = -G - k * vy
-    azd = -k * vz
-    ad = sqrt(axd*axd + ayd*ayd + azd*azd)
-    if yd < 0:
-        yd = 0
-    return round(xd,2), round(yd,2), round(zd,2), round(vd,2), round(axd,2), round(ayd,2), round(azd,2), round(ad,2)
-
+# ── UI Row 2 Sliders ────────────────────────────────────────────────
 def update_calc(evt):
     spd = speed_slider.value
     elev = angle_slider.value
     azim = azim_slider.value
     k = drag_slider.value
     qt = t_slider.value
-
-    speed_wt.text = r1(spd) + " m/s"
-    angle_wt.text = r1(elev) + " deg"
-    azim_wt.text = r1(azim) + " deg"
-    drag_wt.text = r2(k)
-    t_wt.text = r1(qt) + " s"
-
-    tof, maxh, rng, peak, v0x, v0y, v0z = calc_ideal(spd, elev, azim)
-    r_tof_i.text = r2(tof)
-    r_maxh_i.text = r2(maxh)
-    r_rng_i.text = r2(rng)
-    r_peak_i.text = r2(peak)
-    r_v0x.text = r2(v0x)
-    r_v0y.text = r2(v0y)
-    r_v0z.text = r2(v0z)
-
-    dtof, dmaxh, drng, dpeak = sim_drag_3d(spd, elev, azim, k)
-    r_tof_d.text = r2(dtof)
-    r_maxh_d.text = r2(dmaxh)
-    r_rng_d.text = r2(drng)
-    r_peak_d.text = r2(dpeak)
-
-    xi, yi, zi, vi, axi, ayi, azi, ai = at_time_ideal_3d(spd, elev, azim, qt)
-    q_xi.text = str(xi)
-    q_yi.text = str(yi)
-    q_zi.text = str(zi)
-    q_vi.text = str(vi)
-    q_axi.text = str(axi)
-    q_ayi.text = str(ayi)
-    q_azi.text = str(azi)
-    q_ai.text = str(ai)
-
-    xd, yd, zd, vd, axd, ayd, azd, ad = at_time_drag_3d(spd, elev, azim, k, qt)
-    q_xd.text = str(xd)
-    q_yd.text = str(yd)
-    q_zd.text = str(zd)
-    q_vd.text = str(vd)
-    q_axd.text = str(axd)
-    q_ayd.text = str(ayd)
-    q_azd.text = str(azd)
-    q_ad.text = str(ad)
-
+    speed_wt.text = str(round(spd, 1)) + " m/s"
+    angle_wt.text = str(round(elev, 1)) + " deg"
+    azim_wt.text = str(round(azim, 1)) + " deg"
+    drag_wt.text = str(round(k, 2))
+    t_wt.text = str(round(qt, 1)) + " s"
     e = elev * pi / 180
     a = azim * pi / 180
     cannon.axis = 3 * vector(cos(e)*cos(a), sin(e), cos(e)*sin(a))
 
-update_calc(0)
+scene.append_to_caption("\n<b>v₀:</b>&nbsp;")
+speed_slider = slider(min=5, max=80, value=20, length=140, bind=update_calc)
+speed_wt = wtext(text="20 m/s")
+scene.append_to_caption("&nbsp;&nbsp;<b>θ:</b>&nbsp;")
+angle_slider = slider(min=1, max=89, value=45, length=130, bind=update_calc)
+angle_wt = wtext(text="45 deg")
+scene.append_to_caption("&nbsp;&nbsp;<b>φ:</b>&nbsp;")
+azim_slider = slider(min=0, max=90, value=0, length=120, bind=update_calc)
+azim_wt = wtext(text="0 deg")
+scene.append_to_caption("&nbsp;&nbsp;<b>k:</b>&nbsp;")
+drag_slider = slider(min=0, max=0.5, value=0.1, length=110, bind=update_calc)
+drag_wt = wtext(text="0.10")
 
-# ════════════════════════════════════════════════════════════════════
-# Simulation loop
-# ════════════════════════════════════════════════════════════════════
+scene.append_to_caption("\n<b>t:</b>&nbsp;")
+t_slider = slider(min=0, max=15, value=1, length=110, bind=update_calc)
+t_wt = wtext(text="1.0 s")
+
+# Graphs
+graph1 = graph(title="Height vs Time", xtitle="t (s)", ytitle="y (m)", align="left", width=460, height=160)
+height_curve = gcurve(color=color.cyan)
+graph2 = graph(title="Speed vs Time", xtitle="t (s)", ytitle="v (m/s)", align="left", width=460, height=160)
+velocity_curve = gcurve(color=color.yellow)
+graph3 = graph(title="Accel Magnitude vs Time", xtitle="t (s)", ytitle="|a| (m/s²)", align="left", width=460, height=160)
+accel_curve = gcurve(color=color.magenta)
+
+# ── Simulation Loop ─────────────────────────────────────────────────
 while True:
     rate(100)
+    
     if mag(ball.pos - target.pos) < 6:
-           target.color = color.green
-           score += 1
-           score_label.text = "Score: " + str(score)
+        target.color = color.green
+        score += 1
+        score_label.text = "Score: " + str(score)
 
     if _launch_flash > 0:
         _launch_flash -= 1
-        if _launch_flash == 90:
-            btn_launch.text = "✔ Launched!"
-            btn_launch.background = vector(0.04, 0.55, 0.15)
-        elif _launch_flash == 0:
+        if _launch_flash == 0:
             btn_launch.text = "Launch 🚀"
             btn_launch.background = vector(0.85, 0.85, 0.85)
             btn_launch.color = color.black
 
-    # Update smoke particles (NOW INSIDE THE WHILE LOOP)
     for p in smoke_particles:
         p.pos = p.pos + p.vel * 0.05
         p.opacity = p.opacity * 0.96
 
-    # Projectile Physics
     if launched and not paused:
         k = drag_slider.value
-
         for i in range(speed_mult):
-            wind = vector(2,0,1)  # change values for different wind
+            wind = vector(2,0,1)
             ax_accel = -k * velocity.x + wind.x
             ay_accel = -G - k * velocity.y
             az_accel = -k * velocity.z + wind.z
-            
             accel_vec = vector(ax_accel, ay_accel, az_accel)
             accel_mag = mag(accel_vec)
 
             velocity = velocity + accel_vec * DT
             ball.pos = ball.pos + velocity * DT
             t = t + DT
-            if ball.pos.y > peak_highest:
-            peak_highest = ball.pos.y
-            peak_vec = ball.pos
 
-           scene.center = scene.center + (ball.pos - scene.center)*0.05
-           scene.forward = scene.forward + (norm(ball.pos - scene.center) - scene.forward)*0.05
+            if ball.pos.y > peak_highest:
+                peak_highest = ball.pos.y
+                peak_vec = vector(ball.pos.x, ball.pos.y, ball.pos.z)
+
+            # --- Move these OUT of the peak check ---
+            scene.center = scene.center + (ball.pos - scene.center)*0.05
             horiz = sqrt(ball.pos.x*ball.pos.x + ball.pos.z*ball.pos.z)
             
             if velocity.y >= 0:
@@ -635,13 +337,6 @@ while True:
             else:
                 height_frac = max(0.0, ball.pos.y / peak_highest) if peak_highest > 0 else 0.0
                 scene.range = 25 + (_peak_range - 25) * height_frac
-
-            if horiz > ground.size.x / 2 - 10:
-                ground.size.x = ground.size.x * 1.5
-                ground.pos.x = ground.size.x / 4
-
-            if abs(ball.pos.z) > ground.size.z / 2 - 8:
-                ground.size.z = ground.size.z * 1.5
 
             height_curve.plot(t, ball.pos.y)
             velocity_curve.plot(t, mag(velocity))
@@ -657,38 +352,21 @@ while True:
             peak_marker.opacity = 0.9
             peak_label.pos = peak_vec + vector(0, 4, 0)
             peak_label.text = "Peak: " + str(round(peak_highest, 1)) + " m"
+            peak_label.visible = True
             peak_label.opacity = 1
 
-            data_label.text = (
-                "t=" + str(round(t, 2)) + "s"
-                + " x=" + str(round(ball.pos.x, 1))
-                + " y=" + str(round(ball.pos.y, 1))
-                + " z=" + str(round(ball.pos.z, 1))
-                + "\nv=" + str(round(mag(velocity), 1)) + " m/s"
-                + " |a|=" + str(round(accel_mag, 2)) + " m/s\u00b2"
-                + "\nax=" + str(round(ax_accel, 2))
-                + " ay=" + str(round(ay_accel, 2))
-                + " az=" + str(round(az_accel, 2)) + " m/s\u00b2"
-            )
-
-            # --- IMPACT LOGIC (NOW PROPERLY NESTED) ---
-            if abs(velocity.y) > 1:
-                velocity.y = -velocity.y*0.5
-            else:
-                launched = False
-                
-                # Impact dust creation
-                for i in range(30):
-                    d = sphere(pos=vector(ball.pos.x, 0.2, ball.pos.z),
-                               radius=0.25, color=color.gray(0.6), opacity=0.7)
-                    d.vel = vector(random()-0.5, random()*2, random()-0.5)
-                    smoke_particles.append(d)
-
-                peak_marker.pos = peak_vec
-                peak_marker.opacity = 0.9
-                peak_label.pos = peak_vec + vector(0, 4, 0)
-                peak_label.text = "Peak: " + str(round(peak_highest, 1)) + " m"
-                peak_label.opacity = 1
-                vel_arrow.opacity = 0
-                accel_arrow.opacity = 0
-                break 
+            # --- Corrected Ground Impact Logic ---
+            if ball.pos.y <= 0.05:
+                if abs(velocity.y) > 1:
+                    velocity.y = -velocity.y * 0.5
+                    ball.pos.y = 0.06
+                else:
+                    launched = False
+                    # Dust
+                    for _ in range(30):
+                        d = sphere(pos=vector(ball.pos.x, 0.2, ball.pos.z), radius=0.25, color=color.gray(0.6), opacity=0.7)
+                        d.vel = vector(random()-0.5, random()*2, random()-0.5)
+                        smoke_particles.append(d)
+                    vel_arrow.opacity = 0
+                    accel_arrow.opacity = 0
+                    break
