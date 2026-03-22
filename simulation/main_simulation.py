@@ -29,8 +29,11 @@ scene.background = vector(0.55, 0.75, 0.95) # Sky blue
 scene.ambient = color.gray(0.7)
 
 # 2. THE GROUND
-ground = box(pos=vector(0, -0.5, 0), size=vector(2500, 1, 1200),
-             color=vector(0.2, 0.5, 0.2))
+ground = box(pos=vector(600,0,0), size=vector(1200,0.05,1000), color=color.green)
+target = box(pos=vector(250,5,0), size=vector(6,10,6), color=color.red)
+
+score = 0
+score_label = label(pos=vector(0,20,0), text="Score: 0", box=False)
 
 # 3. Grid lines (Dark green so they aren't ugly black lines)
 for gx in range(-400, 1200, 50):
@@ -206,11 +209,6 @@ def do_launch(b):
     smoke_particles.clear()
 
     # Launch smoke effect
-    for i in range(25):
-        p = sphere(pos=vector(0,0.5,0), radius=0.3, color=color.gray(0.7), opacity=0.6)
-        p.vel = vector(random()-0.5, random()*2, random()-0.5)
-        smoke_particles.append(p)
-
     peak_highest = 0.0
     peak_vec = vector(0, 0, 0)
     peak_marker.opacity = 0
@@ -587,6 +585,10 @@ update_calc(0)
 # ════════════════════════════════════════════════════════════════════
 while True:
     rate(100)
+    if mag(ball.pos - target.pos) < 6:
+           target.color = color.green
+           score += 1
+           score_label.text = "Score: " + str(score)
 
     if _launch_flash > 0:
         _launch_flash -= 1
@@ -608,9 +610,10 @@ while True:
         k = drag_slider.value
 
         for i in range(speed_mult):
-            ax_accel = -k * velocity.x
+            wind = vector(2,0,1)  # change values for different wind
+            ax_accel = -k * velocity.x + wind.x
             ay_accel = -G - k * velocity.y
-            az_accel = -k * velocity.z
+            az_accel = -k * velocity.z + wind.z
             
             accel_vec = vector(ax_accel, ay_accel, az_accel)
             accel_mag = mag(accel_vec)
@@ -618,8 +621,12 @@ while True:
             velocity = velocity + accel_vec * DT
             ball.pos = ball.pos + velocity * DT
             t = t + DT
+            if ball.pos.y > peak_highest:
+            peak_highest = ball.pos.y
+            peak_vec = ball.pos
 
-            scene.center = scene.center + (ball.pos - scene.center) * 0.1
+           scene.center = scene.center + (ball.pos - scene.center)*0.05
+           scene.forward = scene.forward + (norm(ball.pos - scene.center) - scene.forward)*0.05
             horiz = sqrt(ball.pos.x*ball.pos.x + ball.pos.z*ball.pos.z)
             
             if velocity.y >= 0:
@@ -646,9 +653,11 @@ while True:
             accel_arrow.pos = ball.pos
             accel_arrow.axis = accel_vec * 0.6
 
-            if ball.pos.y > peak_highest:
-                peak_highest = ball.pos.y
-                peak_vec = vector(ball.pos.x, ball.pos.y, ball.pos.z)
+            peak_marker.pos = peak_vec
+            peak_marker.opacity = 0.9
+            peak_label.pos = peak_vec + vector(0, 4, 0)
+            peak_label.text = "Peak: " + str(round(peak_highest, 1)) + " m"
+            peak_label.opacity = 1
 
             data_label.text = (
                 "t=" + str(round(t, 2)) + "s"
@@ -663,9 +672,10 @@ while True:
             )
 
             # --- IMPACT LOGIC (NOW PROPERLY NESTED) ---
-            if ball.pos.y < 0:
-                ball.pos.y = 0
-                launched = False # Stop simulation
+            if abs(velocity.y) > 1:
+                velocity.y = -velocity.y*0.5
+            else:
+                launched = False
                 
                 # Impact dust creation
                 for i in range(30):
